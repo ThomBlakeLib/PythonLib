@@ -1,0 +1,72 @@
+"""
+This script opens the xls report exported by PURE and converts it into something a bit more usable.
+"""
+
+
+import xlrd
+
+
+"""
+Open Workbook
+"""
+def openBook(filepath):
+    wb = xlrd.open_workbook(filepath)
+    return wb
+
+"""
+Open Worksheet
+'index' is number of worksheet in workbook
+"""
+def openSheet(wb, index):
+    ws = wb.sheet_by_index(index)
+    return ws
+
+"""
+Make Worksheet into dictionary
+'indexcolumn' is the column number (0-n) to use as the index value in the dictionary
+"""
+def makeDict(ws, indexcolumn):
+    dictionary = {}
+    num_rows = ws.nrows
+    num_cols = ws.ncols
+    for row in range(num_rows):
+        index = ws.cell(row, indexcolumn).value
+        datarow = []
+        for col in range(num_cols):
+            if col != indexcolumn:
+                datarow.append(ws.cell(row, col).value)
+        dictionary[index] = datarow 
+    return dictionary
+
+"""
+Improved structure for dates information
+"""
+def structureDates(dates_data):
+    d = {}
+    for entry in dates_data:
+        if dates_data[entry][0] not in d:
+            d[dates_data[entry][0]] = [[dates_data[entry][1], dates_data[entry][2], dates_data[entry][3], dates_data[entry][4]]]
+        else:
+            d[dates_data[entry][0]].append([dates_data[entry][1], dates_data[entry][2], dates_data[entry][3], dates_data[entry][4]])
+    return d
+
+"""
+Allocate each reacord an 'in scope' status based on dates
+0 = Not is scope
+1 = In scope
+2 = Needs more info
+"""
+def addScopeCode(dates):
+    for entry in dates:
+        for date in dates[entry]:
+            if date[0] == "Accepted/In press":
+                print date
+    
+
+
+wb = openBook("datasheet.xls")
+outputs_data = makeDict(openSheet(wb, 0), 0)
+dates_data = makeDict(openSheet(wb, 1), 0)
+files_data = makeDict(openSheet(wb, 2), 0)
+dates = structureDates(dates_data)
+addScopeCode(dates)
